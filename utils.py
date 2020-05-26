@@ -23,7 +23,16 @@ while True:
         img_item = 'my-image.png'
         cv2.imwrite(img_item, roi_gray)
 
-
+        color = 255, 0, 0
+        stroke = 2
+        width, height = x + w, y + h
+        cv2.rectangle(
+            img=frame,
+            pt1=(x, y),
+            pt2=(width, height),
+            color=color,
+            thickness=stroke,
+        )
 
     cv2.imshow('myframe', frame)
     if cv2.waitKey(20) & 0xFF == ord('q'):
