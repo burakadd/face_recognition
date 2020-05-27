@@ -1,5 +1,4 @@
 import cv2
-import pickle
 
 face_cascade = cv2.CascadeClassifier(
     'cascades/haarcascade_frontalface_alt2.xml'
@@ -33,21 +32,19 @@ while True:
         _id, conf = recognizer.predict(roi_gray)
 
         if conf >= 45:
-            print(_id)
-            print(labels[_id])
             font = cv2.FONT_HERSHEY_SIMPLEX
             name = labels[_id]
-            color = (255, 255, 255)
+            color = 255, 255, 255
             stroke = 2
             cv2.putText(
-                img=frame,
-                text=name,
-                org=(x, y),
-                fontFace=font,
-                fontScale=1,
-                color=color,
-                lineType=stroke,
-                bottomLeftOrigin=cv2.LINE_AA,
+                frame,
+                name,
+                (x, y),
+                font,
+                1,
+                color,
+                stroke,
+                cv2.LINE_AA,
             )
 
         color = 255, 0, 0
