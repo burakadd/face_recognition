@@ -14,6 +14,9 @@ smile_cascade = cv2.CascadeClassifier(
 recognizer = cv2.face.LBPHFaceRecognizer_create()
 recognizer.read('trainner.yml')
 
+recognizer = cv2.face.LBPHFaceRecognizer_create()
+recognizer.read('trainner.yml')
+
 cap = cv2.VideoCapture(0)
 with open('labels.pickle', 'rb') as f:
     og_labels = pickle.load(f)
