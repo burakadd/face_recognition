@@ -1,7 +1,7 @@
 import os
+from typing import Tuple
 
 import numpy
-from PIL import Image
 import cv2
 import pickle
 
@@ -14,43 +14,50 @@ recognizer = cv2.face.LBPHFaceRecognizer_create()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 IMAGE_DIR = os.path.join(BASE_DIR, 'base')
 
-y_labels = []
-x_train = []
-current_id = 0
-label_ids = {}
 
-for root, dirs, files in os.walk(IMAGE_DIR):
-    for file in files:
-        path = os.path.join(root, file)
-        label = os.path.basename(
-            (
-                root.replace(' ', '_').lower()
-             )
-        )
-        if not label in label_ids:
-            label_ids[label] = current_id
-            current_id += 1
-        _id = label_ids[label]
+def resize_image(size: Tuple[int, int], path_to_image):
+    from PIL import Image
+    image = Image.open(path_to_image).convert('L')
+    return image.resize(
+        size, Image.ANTIALIAS
+    )
 
-        pil_image = Image.open(path).convert('L')
 
-        size = 550, 550
-        final_image = pil_image.resize(size, Image.ANTIALIAS)
-        image_array = numpy.array(pil_image, 'uint8')
-        faces = face_cascade.detectMultiScale(
-            image_array,
-            scaleFactor=1.5,
-            minNeighbors=5,
-        )
+def train_recognizer(image_directory, recognizer):
+    labels_for_recognized_faces: list = []
+    region_of_interests: list = []
+    current_id: int = 0
+    label_ids: dict = {}
+    for root, dirs, files in os.walk(image_directory):
+        for file in files:
+            path: str = os.path.join(root, file)
+            label: str = os.path.basename(
+                (
+                    root.replace(' ', '_').lower()
+                 )
+            )
+            if label not in label_ids:
+                label_ids[label] = current_id
+                current_id += 1
+            _id = label_ids[label]
 
-        for x, y, w, h in faces:
-            roi = image_array[y: y + h, x: x + w]
-            x_train.append(roi)
-            y_labels.append(_id)
+            image = resize_image((550, 550), path)
 
-with open('labels.pickle', 'wb') as f:
-    pickle.dump(label_ids, f)
+            image_array = numpy.array(image, 'uint8')
+            faces = face_cascade.detectMultiScale(
+                image_array,
+                scaleFactor=1.5,
+                minNeighbors=5,
+            )
 
-recognizer.train(x_train, numpy.array(y_labels))
-recognizer.save('trainner.yml')
+            for x, y, w, h in faces:
+                region_of_interests = image_array[y: y + h, x: x + w]
+                region_of_interests.append(region_of_interests)
+                labels_for_recognized_faces.append(_id)
+
+    with open('labels.pickle', 'wb') as f:
+        pickle.dump(label_ids, f)
+
+    recognizer.train(region_of_interests, numpy.array(labels_for_recognized_faces))
+    recognizer.save('trainner.yml')
 
